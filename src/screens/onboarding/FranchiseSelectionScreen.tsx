@@ -5,53 +5,29 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  ScrollView,
 } from 'react-native';
-import { colors, typography, spacing, borderRadius } from '../../theme';
+import { colors, spacing } from '../../theme';
 import { Franchise } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { toggleFranchise, setCurrentStep } from '../../store/slices/onboardingSlice';
 
 const { width } = Dimensions.get('window');
-const CARD_SIZE = (width - spacing.lg * 3) / 2;
+const DARK_BG = '#0D1B3E';
+const PILL_BG = 'rgba(255, 255, 255, 0.08)';
+const PILL_SELECTED = '#0057B8';
+const PILL_BORDER = 'rgba(255, 255, 255, 0.12)';
 
 interface FranchiseOption {
   id: Franchise;
   label: string;
   icon: string;
-  color: string;
-  bgColor: string;
 }
 
 const franchiseOptions: FranchiseOption[] = [
-  {
-    id: 'disney',
-    label: 'Disney',
-    icon: '🏰',
-    color: '#1A1D4E',
-    bgColor: '#E8E0F0',
-  },
-  {
-    id: 'pixar',
-    label: 'Pixar',
-    icon: '🚀',
-    color: '#0D7C3F',
-    bgColor: '#D4F5E0',
-  },
-  {
-    id: 'marvel',
-    label: 'Marvel',
-    icon: '🦸',
-    color: '#C42E2E',
-    bgColor: '#FFE0E0',
-  },
-  {
-    id: 'starwars',
-    label: 'Star Wars',
-    icon: '⚔️',
-    color: '#2C2832',
-    bgColor: '#E0E0E8',
-  },
+  { id: 'disney', label: 'Disney', icon: '🏰' },
+  { id: 'pixar', label: 'Pixar', icon: '🚀' },
+  { id: 'marvel', label: 'Marvel', icon: '🦸' },
+  { id: 'starwars', label: 'Star Wars', icon: '⚔️' },
 ];
 
 interface FranchiseSelectionScreenProps {
@@ -71,72 +47,65 @@ export default function FranchiseSelectionScreen({ onNext }: FranchiseSelectionS
     onNext();
   };
 
+  const canContinue = selected.length > 0;
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Genie Header */}
-        <View style={styles.genieHeader}>
-          <View style={styles.genieAvatar}>
-            <Text style={styles.genieEmoji}>{'🧞'}</Text>
-          </View>
-          <View style={styles.speechBubble}>
-            <Text style={styles.speechText}>
-              Which Disney worlds speak to your heart?
-            </Text>
-            <Text style={styles.speechSubtext}>
-              Pick as many as you like — I'll personalize your experience!
-            </Text>
-          </View>
+      {/* Genie character at top center */}
+      <View style={styles.genieContainer}>
+        <View style={styles.genieCircle}>
+          <Text style={styles.genieEmoji}>🧞</Text>
         </View>
+      </View>
 
-        {/* Franchise Grid */}
-        <View style={styles.grid}>
-          {franchiseOptions.map((option) => {
-            const isSelected = selected.includes(option.id);
-            return (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.card,
-                  { backgroundColor: option.bgColor },
-                  isSelected && styles.cardSelected,
-                ]}
-                onPress={() => handleSelect(option.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cardIcon}>{option.icon}</Text>
-                <Text style={[styles.cardLabel, { color: option.color }]}>
+      {/* Title */}
+      <Text style={styles.title}>Choose what you love</Text>
+
+      {/* Franchise pill buttons */}
+      <View style={styles.pillList}>
+        {franchiseOptions.map((option) => {
+          const isSelected = selected.includes(option.id);
+          return (
+            <TouchableOpacity
+              key={option.id}
+              style={[
+                styles.pill,
+                isSelected && styles.pillSelected,
+              ]}
+              onPress={() => handleSelect(option.id)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.pillContent}>
+                <Text style={styles.pillIcon}>{option.icon}</Text>
+                <Text style={[
+                  styles.pillLabel,
+                  isSelected && styles.pillLabelSelected,
+                ]}>
                   {option.label}
                 </Text>
-                {isSelected && (
-                  <View style={styles.checkmark}>
-                    <Text style={styles.checkmarkText}>{'✓'}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
+              </View>
+              {isSelected && (
+                <View style={styles.checkBadge}>
+                  <Text style={styles.checkText}>✓</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-      {/* Continue Button */}
+      {/* Forward arrow button at bottom */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[
-            styles.continueButton,
-            selected.length === 0 && styles.continueButtonDisabled,
+            styles.arrowButton,
+            !canContinue && styles.arrowButtonDisabled,
           ]}
           onPress={handleContinue}
-          disabled={selected.length === 0}
+          disabled={!canContinue}
           activeOpacity={0.8}
         >
-          <Text style={styles.continueText}>Continue</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleContinue}>
-          <Text style={styles.skipText}>Skip for now</Text>
+          <Text style={styles.arrowText}>→</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -146,109 +115,107 @@ export default function FranchiseSelectionScreen({ onNext }: FranchiseSelectionS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.neutral.white,
+    backgroundColor: DARK_BG,
+    alignItems: 'center',
+    paddingTop: 80,
+    paddingHorizontal: spacing.lg,
   },
-  content: {
-    padding: spacing.lg,
-    paddingTop: spacing.huge,
+  genieContainer: {
+    marginBottom: 24,
+    alignItems: 'center',
   },
-  genieHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: spacing.xxxl,
-  },
-  genieAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(91, 44, 142, 0.1)',
+  genieCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(91, 44, 142, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
   },
   genieEmoji: {
+    fontSize: 56,
+  },
+  title: {
     fontSize: 28,
+    fontWeight: '700',
+    color: colors.neutral.white,
+    textAlign: 'center',
+    marginBottom: 36,
   },
-  speechBubble: {
-    flex: 1,
-    backgroundColor: colors.neutral.offWhite,
-    borderRadius: borderRadius.xl,
-    borderTopLeftRadius: borderRadius.sm,
-    padding: spacing.lg,
+  pillList: {
+    width: '100%',
+    gap: 14,
   },
-  speechText: {
-    ...typography.h3,
-    color: colors.neutral.charcoal,
-    marginBottom: spacing.xs,
-  },
-  speechSubtext: {
-    ...typography.bodySmall,
-    color: colors.neutral.darkGray,
-  },
-  grid: {
+  pill: {
+    width: '100%',
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: PILL_BG,
+    borderWidth: 2,
+    borderColor: PILL_BORDER,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  card: {
-    width: CARD_SIZE,
-    height: CARD_SIZE,
-    borderRadius: borderRadius.xl,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-    borderWidth: 3,
-    borderColor: 'transparent',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
   },
-  cardSelected: {
-    borderColor: colors.primary.purple,
+  pillSelected: {
+    backgroundColor: PILL_SELECTED,
+    borderColor: PILL_SELECTED,
   },
-  cardIcon: {
-    fontSize: 48,
-    marginBottom: spacing.sm,
+  pillContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  cardLabel: {
-    ...typography.h4,
+  pillIcon: {
+    fontSize: 28,
+    marginRight: 16,
   },
-  checkmark: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
+  pillLabel: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 0.5,
+  },
+  pillLabelSelected: {
+    color: colors.neutral.white,
+  },
+  checkBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.primary.purple,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkmarkText: {
+  checkText: {
     color: colors.neutral.white,
     fontSize: 16,
     fontWeight: '700',
   },
   footer: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
+    position: 'absolute',
+    bottom: 60,
     alignItems: 'center',
   },
-  continueButton: {
-    width: '100%',
-    height: 52,
-    borderRadius: borderRadius.pill,
-    backgroundColor: colors.primary.purple,
+  arrowButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.neutral.white,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  continueButtonDisabled: {
-    opacity: 0.4,
+  arrowButtonDisabled: {
+    opacity: 0.3,
   },
-  continueText: {
-    ...typography.button,
-    color: colors.neutral.white,
-  },
-  skipText: {
-    ...typography.body,
-    color: colors.neutral.gray,
+  arrowText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: DARK_BG,
   },
 });
